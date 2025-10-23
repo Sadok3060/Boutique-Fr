@@ -1,0 +1,11 @@
+﻿# Ignore large archive files that exceed GitHub limits
+BoutiqueProd.zip
+BoutiqueProd.rar
+
+# Common OS and editor files
+.DS_Store
+Thumbs.db
+node_modules/
+vendor/
+.idea/
+.vscode/

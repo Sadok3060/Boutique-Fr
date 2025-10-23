@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="12" width="24" height="16" fill="#E6B7C1"/>
+    <path d="M2 12L16 4L30 12H2Z" fill="#333333"/>
+    <rect x="8" y="16" width="6" height="8" fill="#FFFFFF"/>
+    <rect x="18" y="16" width="6" height="12" fill="#FFFFFF"/>
+    <rect x="19" y="17" width="4" height="8" fill="#E6B7C1"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+</svg>

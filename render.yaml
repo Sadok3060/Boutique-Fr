@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: fr-shop
+    env: docker
+    plan: starter
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      php bin/console cache:clear
+      php bin/console cache:warmup
+      php bin/console assets:install public
+    startCommand: docker/start.sh
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: APP_DEBUG
+        value: 0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fr-shop-db
+          property: connectionString
+      - key: APP_SECRET
+        generateValue: true
+      - key: RUN_MIGRATIONS
+        value: true
+    healthCheckPath: /health
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+
+databases:
+  - name: fr-shop-db
+    plan: starter
+    databaseName: boutique_francaise
+    user: fr_shop_user
+    ipAllowList: []  # only allow internal connections
+    postDeploy: |
+      php bin/console doctrine:database:create --if-not-exists
+      php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+      php bin/console cache:clear
+
+

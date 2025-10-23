@@ -1,0 +1,28 @@
+<div class="card h-100 product-card">
+    <div class="position-relative">
+        {% if product.mainImageUrl %}
+            <img src="{{ product.mainImageUrl }}" class="card-img-top" alt="{{ product.name }}">
+        {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height:200px;">
+                <i class="fas fa-image text-muted" style="font-size:3rem;"></i>
+            </div>
+        {% endif %}
+        <div class="product-overlay d-flex flex-column justify-content-end p-3">
+            <div class="d-flex justify-content-between align-items-end">
+                <div>
+                    <h6 class="mb-1 fw-bold">{{ product.name }}</h6>
+                    <div class="small text-muted">{{ product.description|slice(0,60) }}{% if product.description|length > 60 %}...{% endif %}</div>
+                </div>
+                <div class="price fw-bold ms-2">{{ product.priceWithTva|number_format(2, ',', ' ') }} €</div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body d-flex flex-column pt-3">
+        <div class="mt-auto d-flex gap-2">
+            <a href="{{ path('app_product_show', {'id': product.id}) }}" class="btn btn-outline-primary flex-fill" aria-label="Voir le produit {{ product.name }}"><i class="fas fa-eye me-1"></i>Voir</a>
+            <form method="post" action="{{ path('app_cart_add', {'id': product.id}) }}" class="flex-fill">
+                <button type="submit" class="btn btn-primary w-100" aria-label="Ajouter {{ product.name }} au panier"><i class="fas fa-cart-plus me-1"></i>Ajouter</button>
+            </form>
+        </div>
+    </div>
+</div>
