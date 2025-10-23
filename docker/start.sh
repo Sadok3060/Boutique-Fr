@@ -23,6 +23,38 @@ chmod -R 755 /app/public/uploads /app/var
 # Control whether to run DB initialization tasks during startup (safety for platforms with DNS issues)
 : ${RUN_DB_INIT:=false}
 
+# If DATABASE_URL appears to contain a short host (no dot), try to auto-complete it
+# with the common Render Postgres domain for the region. This helps when the
+# provided URL lacks the full FQDN. We only try a best-effort replacement.
+if [ -n "${DATABASE_URL}" ]; then
+    # extract host (between @ and : or /)
+    DB_HOST=$(echo "${DATABASE_URL}" | sed -n 's#.*@\([^:/]*\).*#\1#p' || true)
+    if [ -n "${DB_HOST}" ]; then
+        echo "Detected DB host: ${DB_HOST}"
+        # only attempt if host contains no dot (likely short name)
+        if ! echo "${DB_HOST}" | grep -q '\.'; then
+            CANDIDATE_HOST="${DB_HOST}.oregon-postgres.render.com"
+            echo "Host looks short; testing resolution for ${DB_HOST} and ${CANDIDATE_HOST}"
+            # try to resolve original host
+            if getent hosts "${DB_HOST}" > /dev/null 2>&1 || ping -c 1 -W 2 "${DB_HOST}" > /dev/null 2>&1; then
+                echo "Original host ${DB_HOST} resolves." 
+            else
+                # try candidate
+                if getent hosts "${CANDIDATE_HOST}" > /dev/null 2>&1 || ping -c 1 -W 2 "${CANDIDATE_HOST}" > /dev/null 2>&1; then
+                    echo "Candidate host ${CANDIDATE_HOST} resolves — updating DATABASE_URL to use it."
+                    # replace only the host part in DATABASE_URL
+                    DATABASE_URL="$(echo "${DATABASE_URL}" | sed "s#@${DB_HOST}#@${CANDIDATE_HOST}#")"
+                    export DATABASE_URL
+                else
+                    echo "Neither ${DB_HOST} nor ${CANDIDATE_HOST} resolve; leaving DATABASE_URL unchanged." 
+                fi
+            fi
+        else
+            echo "DB host appears fully-qualified: ${DB_HOST}"
+        fi
+    fi
+fi
+
 
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL..."
