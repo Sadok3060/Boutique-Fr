@@ -20,6 +20,9 @@ mkdir -p /app/var /app/public/uploads
 chown -R www-data:www-data /app/var /app/public/uploads
 chmod -R 755 /app/public/uploads /app/var
 
+# Control whether to run DB initialization tasks during startup (safety for platforms with DNS issues)
+: ${RUN_DB_INIT:=false}
+
 
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL..."
@@ -28,16 +31,21 @@ until php /app/check_postgresql.php > /dev/null 2>&1; do
     sleep 2
 done
 echo "PostgreSQL is up!"
-
-# Correction automatique du schéma (ajout colonnes manquantes, safe)
-echo "Running DB schema fix script (bin/fix_db_all.php)..."
-php /app/bin/fix_db_all.php || true
-echo "DB schema fix done."
+# If RUN_DB_INIT is true, run DB initialization/fixes. Otherwise skip to let the app start and
+# allow manual database initialization from a Render shell or job.
+if [ "${RUN_DB_INIT}" = "true" ]; then
+    # Correction automatique du schéma (ajout colonnes manquantes, safe)
+    echo "Running DB schema fix script (bin/fix_db_all.php)..."
+    php /app/bin/fix_db_all.php || true
+    echo "DB schema fix done."
+else
+    echo "RUN_DB_INIT != true -> Skipping automatic DB schema fixes at startup."
+fi
 
 # Ensure critical tables/columns exist and fix NULL firstname/lastname for admin using psql (if available)
-if [ -n "${DATABASE_URL}" ] && command -v psql > /dev/null 2>&1; then
-        echo "Running quick DB fixes via psql..."
-        psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 <<'PSQL' || true
+if [ "${RUN_DB_INIT}" = "true" ] && [ -n "${DATABASE_URL}" ] && command -v psql > /dev/null 2>&1; then
+    echo "RUN_DB_INIT=true -> Running quick DB fixes via psql..."
+    psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 <<'PSQL' || true
 BEGIN;
 -- Create minimal order table if missing (safe, id and fk to user)
 CREATE TABLE IF NOT EXISTS "order" (
@@ -78,8 +86,8 @@ else
         echo "Skipping psql DB fixes: DATABASE_URL not set or psql not available."
 fi
 
-# Run database migrations and setup admin in production
-if [ "${APP_ENV}" = "prod" ]; then
+# Run database migrations and setup admin in production (only if RUN_DB_INIT=true)
+if [ "${RUN_DB_INIT}" = "true" ] && [ "${APP_ENV}" = "prod" ]; then
     # Create database schema first
     echo "Creating database schema..."
     php /app/bin/console doctrine:schema:create --no-interaction || true
