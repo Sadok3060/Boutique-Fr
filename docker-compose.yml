@@ -8,39 +8,21 @@ services:
     environment:
       - APP_ENV=dev
       - APP_DEBUG=1
-      - DATABASE_URL=mysql://boutique:boutique@database:3306/boutique_prod?serverVersion=8.0
+      # Remote PostgreSQL (Render) with sslmode=require
+      - DATABASE_URL=postgresql://boutique_francaise_6okf_user:wxCWqnVtHvxTR8ful0z5rRKDiFFLPPdz@dpg-d3t7507gi27c73cn0ep0-a.oregon-postgres.render.com/boutique_francaise_6okf?sslmode=require
     depends_on:
-      database:
-        condition: service_healthy
+      - mailer
     volumes:
       - ./:/app
       - ./public/uploads:/app/public/uploads
     networks:
       - boutique-network
 
-  database:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: boutique_prod
-      MYSQL_USER: boutique
-      MYSQL_PASSWORD: boutique
-    ports:
-      - "3307:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "boutique", "-pboutique"]
-      timeout: 20s
-      retries: 10
-    networks:
-      - boutique-network
-
   mailer:
     image: axllent/mailpit
     ports:
-      - "8025:8025"
-      - "1025:1025"
+      - "8026:8025" # web UI (host:container)
+      - "1026:1025" # smtp  (host:container)
     networks:
       - boutique-network
 

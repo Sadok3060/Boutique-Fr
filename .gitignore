@@ -9,3 +9,5 @@ node_modules/
 vendor/
 .idea/
 .vscode/
+/var/cache/
+/var/log/

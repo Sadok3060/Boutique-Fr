@@ -107,5 +107,11 @@
             "allow-contrib": false,
             "require": "6.1.*"
         }
+    },
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "http://repo.packagist.org"
+        }
     }
 }

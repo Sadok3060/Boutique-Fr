@@ -5,6 +5,7 @@ echo "=== Vérification des extensions PHP ===\n";
 $required_extensions = [
     'pdo',
     'pdo_mysql',
+    'pdo_pgsql',
     'mysqli',
     'mbstring',
     'gd',
